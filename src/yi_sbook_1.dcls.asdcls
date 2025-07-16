@@ -1,0 +1,11 @@
+@EndUserText.label: 'Access Control for YI_SBOOK'
+@MappingRole: true
+define role YI_SBOOK_1 {
+    grant
+        select on YI_SBOOK
+            redefinition
+            where
+            inheriting conditions from super;
+                     //BookingId = 4;
+                        
+}

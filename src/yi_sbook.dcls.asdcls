@@ -1,0 +1,9 @@
+@EndUserText.label: 'Access Control for YI_SBOOK'
+@MappingRole: true
+define role YI_SBOOK {
+    grant
+        select on YI_SBOOK
+        where BookingId = 4;
+                    //where ( BookingId ) = aspect YI_AP_SBOOK;
+                        
+}

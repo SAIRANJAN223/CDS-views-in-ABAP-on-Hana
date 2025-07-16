@@ -1,0 +1,9 @@
+define accesspolicy YI_AP_SBOOK {
+    @EndUserText.label: 'Access  Policy for YI_SBOOK'
+    define aspect YI_AP_SBOOK as
+        select from YI_SBOOK with user element CustomerCreatedBy
+            {
+                BookingId
+            }
+            
+}

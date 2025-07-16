@@ -1,0 +1,14 @@
+@EndUserText.label: 'Access Control for YC_SBOOK'
+@MappingRole: true
+define role YC_SBOOK {
+    grant
+        select
+            on
+                YC_SBOOK
+                    where
+                        inheriting
+                            conditions from entity YI_SBOOK;
+//                        inherit YI_SBOOK
+//                            for grant select on YI_SBOOK;
+                        
+}
