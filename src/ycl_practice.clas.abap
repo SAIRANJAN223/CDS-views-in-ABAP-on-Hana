@@ -5,23 +5,33 @@ CLASS ycl_practice DEFINITION
 
   PUBLIC SECTION.
     INTERFACES if_oo_adt_classrun.
+    CLASS-METHODS class_constructor.
     CLASS-METHODS get_arth_data.
     CLASS-METHODS get_aggre_data.
     CLASS-METHODS get_case_data.
+    CLASS-METHODS get_host_exp_data.
   PROTECTED SECTION.
     CLASS-DATA : lr_out TYPE REF TO if_oo_adt_classrun_out.
   PRIVATE SECTION.
+    CLASS-DATA: lt_carrier TYPE STANDARD TABLE OF /dmo/carrier.
+    CLASS-DATA: lv_carrier_id TYPE /dmo/carrier_id.
 
 ENDCLASS.
 
-CLASS ycl_practice IMPLEMENTATION.
+
+
+CLASS YCL_PRACTICE IMPLEMENTATION.
+
 
   METHOD if_oo_adt_classrun~main.
     lr_out = out.
 *    me->get_arth_data(  ).
 *    me->get_aggre_data(  ).
     me->get_case_data( ).
+    me->get_host_exp_data( ).
+
   ENDMETHOD.
+
 
   METHOD get_arth_data.
     DATA: lv_discount TYPE p DECIMALS 1 VALUE '0.8',
@@ -45,6 +55,7 @@ CLASS ycl_practice IMPLEMENTATION.
     lr_out->write( lt_data ).
   ENDMETHOD.
 
+
   METHOD get_aggre_data.
 * SUM, AVG, MAX, MIN, COUNT
     SELECT
@@ -61,6 +72,7 @@ CLASS ycl_practice IMPLEMENTATION.
         INTO TABLE @DATA(lt_data).
     lr_out->write( lt_data ).
   ENDMETHOD.
+
 
   METHOD get_case_data.
 
@@ -88,4 +100,24 @@ CLASS ycl_practice IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD class_constructor.
+    SELECT
+        FROM /dmo/carrier
+        FIELDS *
+        INTO TABLE @DATA(lt_carrier).
+  ENDMETHOD.
+
+
+  METHOD get_host_exp_data.
+
+    SELECT
+        FROM /dmo/flight
+        FIELDS carrier_id, flight_date, price
+        WHERE carrier_id = @( VALUE /dmo/flight-carrier_id( lt_carrier[ name = 'Deutsche Lufthansa AG' ]-carrier_id ) )
+        INTO TABLE @DATA(lt_flight_data).
+
+    lr_out->write( lt_flight_data ).
+
+  ENDMETHOD.
 ENDCLASS.
