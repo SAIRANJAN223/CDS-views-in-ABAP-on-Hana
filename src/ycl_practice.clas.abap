@@ -5,11 +5,12 @@ CLASS ycl_practice DEFINITION
 
   PUBLIC SECTION.
     INTERFACES if_oo_adt_classrun.
-    CLASS-METHODS class_constructor.
     CLASS-METHODS get_arth_data.
     CLASS-METHODS get_aggre_data.
     CLASS-METHODS get_case_data.
     CLASS-METHODS get_host_exp_data.
+    CLASS-METHODS class_constructor.
+    CLASS-METHODS get_client_handling.
   PROTECTED SECTION.
     CLASS-DATA : lr_out TYPE REF TO if_oo_adt_classrun_out.
   PRIVATE SECTION.
@@ -20,15 +21,16 @@ ENDCLASS.
 
 
 
-CLASS YCL_PRACTICE IMPLEMENTATION.
+CLASS ycl_practice IMPLEMENTATION.
 
 
   METHOD if_oo_adt_classrun~main.
     lr_out = out.
 *    me->get_arth_data(  ).
 *    me->get_aggre_data(  ).
-    me->get_case_data( ).
-    me->get_host_exp_data( ).
+*    me->get_case_data( ).
+*    me->get_host_exp_data( ).
+    me->get_client_handling( ).
 
   ENDMETHOD.
 
@@ -55,7 +57,6 @@ CLASS YCL_PRACTICE IMPLEMENTATION.
     lr_out->write( lt_data ).
   ENDMETHOD.
 
-
   METHOD get_aggre_data.
 * SUM, AVG, MAX, MIN, COUNT
     SELECT
@@ -72,7 +73,6 @@ CLASS YCL_PRACTICE IMPLEMENTATION.
         INTO TABLE @DATA(lt_data).
     lr_out->write( lt_data ).
   ENDMETHOD.
-
 
   METHOD get_case_data.
 
@@ -100,14 +100,12 @@ CLASS YCL_PRACTICE IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD class_constructor.
     SELECT
         FROM /dmo/carrier
         FIELDS *
         INTO TABLE @DATA(lt_carrier).
   ENDMETHOD.
-
 
   METHOD get_host_exp_data.
 
@@ -120,4 +118,20 @@ CLASS YCL_PRACTICE IMPLEMENTATION.
     lr_out->write( lt_flight_data ).
 
   ENDMETHOD.
+
+  METHOD get_client_handling.
+
+    SELECT
+        FROM /dmo/booking AS booking
+        INNER JOIN /dmo/flight AS flight
+        ON booking~carrier_id = flight~carrier_id
+*        USING CLIENT '200'
+        FIELDS booking_id, flight~carrier_id, flight_price
+        INTO TABLE @DATA(lt_client)
+        up to 20 rows.
+
+    lr_out->write( lt_client ).
+
+  ENDMETHOD.
+
 ENDCLASS.
