@@ -7,6 +7,7 @@ CLASS ycl_practice DEFINITION
     INTERFACES if_oo_adt_classrun.
     CLASS-METHODS get_arth_data.
     CLASS-METHODS get_aggre_data.
+    CLASS-METHODS get_case_data.
   PROTECTED SECTION.
     CLASS-DATA : lr_out TYPE REF TO if_oo_adt_classrun_out.
   PRIVATE SECTION.
@@ -18,7 +19,8 @@ CLASS ycl_practice IMPLEMENTATION.
   METHOD if_oo_adt_classrun~main.
     lr_out = out.
 *    me->get_arth_data(  ).
-    me->get_aggre_data(  ).
+*    me->get_aggre_data(  ).
+    me->get_case_data( ).
   ENDMETHOD.
 
   METHOD get_arth_data.
@@ -44,6 +46,7 @@ CLASS ycl_practice IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_aggre_data.
+* SUM, AVG, MAX, MIN, COUNT
     SELECT
         FROM /dmo/booking
         FIELDS customer_id,
@@ -57,6 +60,32 @@ CLASS ycl_practice IMPLEMENTATION.
         GROUP BY customer_id, currency_code
         INTO TABLE @DATA(lt_data).
     lr_out->write( lt_data ).
+  ENDMETHOD.
+
+  METHOD get_case_data.
+
+    SELECT
+        FROM /dmo/booking
+        FIELDS customer_id,
+*        Case with String
+               CASE currency_code
+                WHEN 'USD' THEN 'Doller'
+                WHEN 'EUR' THEN 'Euro'
+                WHEN 'JPY' THEN 'Yen'
+                WHEN 'SGD' THEN 'Sin'
+                ELSE 'Other Currency'
+               END AS Currency,
+*        Case with expression
+               CASE
+                 WHEN flight_price < 200 THEN 'Low Price'
+                 WHEN ( flight_price > 200 AND flight_price < 5000 ) THEN 'Medium Price'
+                 WHEN flight_price > 5000 THEN 'High Price'
+               END AS PriceRange
+               INTO TABLE @DATA(lt_case)
+               UP TO 200 ROWS.
+
+    lr_out->write( lt_case ).
+
   ENDMETHOD.
 
 ENDCLASS.
