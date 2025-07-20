@@ -13,6 +13,7 @@ CLASS ycl_practice DEFINITION
     CLASS-METHODS get_client_handling.
     CLASS-METHODS get_group_by_data.
     CLASS-METHODS get_having_clause_data.
+    CLASS-METHODS get_union_data.
   PROTECTED SECTION.
     CLASS-DATA : lr_out TYPE REF TO if_oo_adt_classrun_out.
   PRIVATE SECTION.
@@ -28,13 +29,14 @@ CLASS ycl_practice IMPLEMENTATION.
 
   METHOD if_oo_adt_classrun~main.
     lr_out = out.
-*    me->get_arth_data(  ).
-*    me->get_aggre_data(  ).
+*    me->get_arth_data( ).
+*    me->get_aggre_data( ).
 *    me->get_case_data( ).
 *    me->get_host_exp_data( ).
 *    me->get_client_handling( ).
-*    me->get_group_by_data(  ).
-    me->get_having_clause_data(  ).
+*    me->get_group_by_data( ).
+*    me->get_having_clause_data( ).
+    me->get_union_data( ).
 
   ENDMETHOD.
 
@@ -207,6 +209,80 @@ CLASS ycl_practice IMPLEMENTATION.
         INTO TABLE @DATA(lt_hav_cla).
 
     lr_out->write( lt_hav_cla ).
+
+  ENDMETHOD.
+
+  METHOD get_union_data.
+
+** As this query hitting DB twice not advisable to use
+*     SELECT
+*        FROM /dmo/booking
+*        FIELDS customer_id,
+*               currency_code,
+*               SUM( flight_price ) AS SumPrice,
+**               AVG( flight_price ) AS AvgPrice,
+**               MAX( flight_price ) AS MaxPrice,
+**               MIN( flight_price ) AS MinPrice,
+*               COUNT( * ) AS TotalCount,
+*               'Long travelling customers' as CustCat
+*        WHERE customer_id BETWEEN 1 AND 5
+*        GROUP BY customer_id, currency_code
+*        HAVING SUM( flight_price ) > 60000
+*        ORDER BY customer_id ASCENDING
+*        INTO TABLE @DATA(lt_union).
+*
+*        SELECT
+*        FROM /dmo/booking
+*        FIELDS customer_id,
+*               currency_code,
+*               SUM( flight_price ) AS SumPrice,
+**               AVG( flight_price ) AS AvgPrice,
+**               MAX( flight_price ) AS MaxPrice,
+**               MIN( flight_price ) AS MinPrice,
+*               COUNT( * ) AS TotalCount,
+*               'Short travelling customer' as CustCat
+*        WHERE customer_id BETWEEN 1 AND 5
+*        GROUP BY customer_id, currency_code
+*        HAVING SUM( flight_price ) < 60000
+*        ORDER BY customer_id ASCENDING
+*        APPENDING TABLE @lt_union.
+
+*Using union we can use select query in one hit to DB
+    SELECT
+            FROM /dmo/booking
+            FIELDS customer_id,
+                   currency_code,
+                   SUM( flight_price ) AS SumPrice,
+*               AVG( flight_price ) AS AvgPrice,
+*               MAX( flight_price ) AS MaxPrice,
+*               MIN( flight_price ) AS MinPrice,
+                   COUNT( * ) AS TotalCount,
+                   'Long travelling customers' AS CustCat
+            WHERE customer_id BETWEEN 1 AND 5
+            GROUP BY customer_id, currency_code
+            HAVING SUM( flight_price ) > 60000
+*            ORDER BY customer_id ASCENDING
+*            INTO TABLE @DATA(lt_union).
+    UNION ALL
+    SELECT
+    FROM /dmo/booking
+    FIELDS customer_id,
+           currency_code,
+           SUM( flight_price ) AS SumPrice,
+*               AVG( flight_price ) AS AvgPrice,
+*               MAX( flight_price ) AS MaxPrice,
+*               MIN( flight_price ) AS MinPrice,
+           COUNT( * ) AS TotalCount,
+           'Short travelling customer' AS CustCat
+    WHERE customer_id BETWEEN 1 AND 5
+    GROUP BY customer_id, currency_code
+    HAVING SUM( flight_price ) < 60000
+    ORDER BY customer_id ASCENDING
+    into TABLE @data(lt_union).
+
+    lr_out->write( lines( lt_union ) ).
+
+    lr_out->write( lt_union ).
 
   ENDMETHOD.
 
