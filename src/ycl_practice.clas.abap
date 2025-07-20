@@ -12,6 +12,7 @@ CLASS ycl_practice DEFINITION
     CLASS-METHODS class_constructor.
     CLASS-METHODS get_client_handling.
     CLASS-METHODS get_group_by_data.
+    CLASS-METHODS get_having_clause_data.
   PROTECTED SECTION.
     CLASS-DATA : lr_out TYPE REF TO if_oo_adt_classrun_out.
   PRIVATE SECTION.
@@ -32,7 +33,8 @@ CLASS ycl_practice IMPLEMENTATION.
 *    me->get_case_data( ).
 *    me->get_host_exp_data( ).
 *    me->get_client_handling( ).
-    me->get_group_by_data(  ).
+*    me->get_group_by_data(  ).
+    me->get_having_clause_data(  ).
 
   ENDMETHOD.
 
@@ -138,7 +140,7 @@ CLASS ycl_practice IMPLEMENTATION.
 
   METHOD get_group_by_data.
 
-" This will not meet out requirement
+    " This will not meet out requirement
 *    SELECT
 *        FROM /dmo/booking
 *        FIELDS customer_id,
@@ -183,6 +185,28 @@ CLASS ycl_practice IMPLEMENTATION.
             INTO TABLE @DATA(lt_group_by).
 
     lr_out->write( lt_group_by ).
+
+  ENDMETHOD.
+
+  METHOD get_having_clause_data.
+
+    SELECT
+        FROM /dmo/booking
+        FIELDS customer_id,
+               currency_code,
+               SUM( flight_price ) AS SumPrice,
+               AVG( flight_price ) AS AvgPrice,
+               MAX( flight_price ) AS MaxPrice,
+               MIN( flight_price ) AS MinPrice,
+               COUNT( * ) AS TotalCount
+        WHERE customer_id BETWEEN 1 AND 5
+        GROUP BY customer_id, currency_code
+*        Check the results with and without Having clause to understand
+        HAVING SUM( flight_price ) > 60000
+        ORDER BY customer_id ASCENDING
+        INTO TABLE @DATA(lt_hav_cla).
+
+    lr_out->write( lt_hav_cla ).
 
   ENDMETHOD.
 
