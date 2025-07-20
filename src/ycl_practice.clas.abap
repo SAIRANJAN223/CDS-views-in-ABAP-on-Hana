@@ -263,7 +263,8 @@ CLASS ycl_practice IMPLEMENTATION.
             HAVING SUM( flight_price ) > 60000
 *            ORDER BY customer_id ASCENDING
 *            INTO TABLE @DATA(lt_union).
-    UNION ALL
+    UNION
+*    UNION ALL
     SELECT
     FROM /dmo/booking
     FIELDS customer_id,
