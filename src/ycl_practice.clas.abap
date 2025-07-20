@@ -11,6 +11,7 @@ CLASS ycl_practice DEFINITION
     CLASS-METHODS get_host_exp_data.
     CLASS-METHODS class_constructor.
     CLASS-METHODS get_client_handling.
+    CLASS-METHODS get_group_by_data.
   PROTECTED SECTION.
     CLASS-DATA : lr_out TYPE REF TO if_oo_adt_classrun_out.
   PRIVATE SECTION.
@@ -30,7 +31,8 @@ CLASS ycl_practice IMPLEMENTATION.
 *    me->get_aggre_data(  ).
 *    me->get_case_data( ).
 *    me->get_host_exp_data( ).
-    me->get_client_handling( ).
+*    me->get_client_handling( ).
+    me->get_group_by_data(  ).
 
   ENDMETHOD.
 
@@ -128,9 +130,59 @@ CLASS ycl_practice IMPLEMENTATION.
 *        USING CLIENT '200'
         FIELDS booking_id, flight~carrier_id, flight_price
         INTO TABLE @DATA(lt_client)
-        up to 20 rows.
+        UP TO 20 ROWS.
 
     lr_out->write( lt_client ).
+
+  ENDMETHOD.
+
+  METHOD get_group_by_data.
+
+" This will not meet out requirement
+*    SELECT
+*        FROM /dmo/booking
+*        FIELDS customer_id,
+*               currency_code,
+*               SUM( flight_price ) AS SumPrice,
+**               AVG( flight_price ) AS AvgPrice,
+**               MAX( flight_price ) AS MaxPrice,
+**               MIN( flight_price ) AS MinPrice,
+*               COUNT( * ) AS TotalCount,
+*               CASE
+*                 WHEN flight_price < 500 THEN 'Low range ticket total'
+*                 WHEN ( flight_price > 500 AND flight_price < 5000 ) THEN 'Medium range ticket total'
+*                 ELSE 'High range ticket total'
+*               END AS CountDes
+*        WHERE customer_id EQ 1
+*        GROUP BY customer_id, currency_code, flight_price
+**        ORDER BY currency_code ASCENDING
+*        INTO TABLE @DATA(lt_group_by).
+
+    SELECT
+            FROM /dmo/booking
+            FIELDS customer_id,
+                   currency_code,
+                   SUM( flight_price ) AS SumPrice,
+*                   AVG( flight_price ) AS AvgPrice,
+*                   MAX( flight_price ) AS MaxPrice,
+*                   MIN( flight_price ) AS MinPrice,
+                   COUNT( * ) AS TotalCount,
+                   CASE
+                     WHEN flight_price < 500 THEN 'Low range ticket total'
+                     WHEN ( flight_price > 500 AND flight_price < 5000 ) THEN 'Medium range ticket total'
+                     ELSE 'High range ticket total'
+                   END AS CountDes
+            WHERE customer_id EQ 1
+            GROUP BY customer_id, currency_code,
+                     CASE
+                        WHEN flight_price < 500 THEN 'Low range ticket total'
+                        WHEN ( flight_price > 500 AND flight_price < 5000 ) THEN 'Medium range ticket total'
+                        ELSE 'High range ticket total'
+                     END
+*            ORDER BY currency_code ASCENDING
+            INTO TABLE @DATA(lt_group_by).
+
+    lr_out->write( lt_group_by ).
 
   ENDMETHOD.
 
