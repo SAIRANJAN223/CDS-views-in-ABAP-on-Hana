@@ -24,7 +24,11 @@ CLASS ycl_amdp_procedure DEFINITION
            END  OF ty_session_var,
            tt_session_var TYPE ty_session_var.
 
+    TYPES : tt_book TYPE TABLE OF zvi_booking .
+
     METHODS get_top_flop_customer
+      AMDP OPTIONS READ-ONLY
+      CDS SESSION CLIENT current
       IMPORTING
         VALUE(iv_top)  TYPE int1
       EXPORTING
@@ -33,7 +37,7 @@ CLASS ycl_amdp_procedure DEFINITION
 
     CLASS-METHODS session_variable
       AMDP OPTIONS READ-ONLY
-      CDS SESSION CLIENT iv_clnt
+      CDS SESSION CLIENT current
       IMPORTING
         VALUE(iv_clnt)     TYPE mandt
       EXPORTING
@@ -44,6 +48,12 @@ CLASS ycl_amdp_procedure DEFINITION
         VALUE(ev_datum)    TYPE datum.
 *      RAISING
 *        cx_amdp_error.
+
+    CLASS-METHODS call_cds_view
+      AMDP OPTIONS
+      CDS SESSION CLIENT iv_clnt
+      IMPORTING VALUE(iv_clnt) TYPE sy-mandt
+      EXPORTING VALUE(et_data) TYPE tt_book.
 
   PROTECTED SECTION.
     CLASS-DATA : lr_out TYPE REF TO if_oo_adt_classrun_out.
@@ -56,6 +66,7 @@ CLASS ycl_amdp_procedure IMPLEMENTATION.
   METHOD if_oo_adt_classrun~main.
 
     lr_out = out.
+
 *    me->get_top_flop_customer(
 *      EXPORTING
 *        iv_top = '10'
@@ -69,19 +80,28 @@ CLASS ycl_amdp_procedure IMPLEMENTATION.
 *    lr_out->write( 'Flop' ).
 *    lr_out->write( lt_flop ).
 
-    session_variable(
-    EXPORTING
-         iv_clnt = '800'
-    IMPORTING
-         ev_cds_clnt = DATA(lv_cds_clnt)
-         ev_clnt =  DATA(lv_clnt)
-         ev_uname = DATA(lv_uname)
-         ev_lang = DATA(lv_lang)
-         ev_datum = DATA(lv_datum) ).
+*    session_variable(
+*    EXPORTING
+*         iv_clnt = '100'
+*    IMPORTING
+*         ev_cds_clnt = DATA(lv_cds_clnt)
+*         ev_clnt =  DATA(lv_clnt)
+*         ev_uname = DATA(lv_uname)
+*         ev_lang = DATA(lv_lang)
+*         ev_datum = DATA(lv_datum) ).
+*
+*    CONCATENATE lv_clnt lv_cds_clnt lv_uname lv_lang lv_datum INTO DATA(lv_all) SEPARATED BY space.
+*
+*    lr_out->write( lv_all ).
 
-    CONCATENATE lv_clnt lv_cds_clnt lv_uname lv_lang lv_datum INTO DATA(lv_all) SEPARATED BY space.
+    call_cds_view(
+      EXPORTING
+        iv_clnt = '200'
+      IMPORTING
+        et_data = DATA(lt_data)
+    ).
 
-    lr_out->write( lv_all ).
+    lr_out->write( lt_data ).
 
   ENDMETHOD.
 
@@ -115,6 +135,23 @@ CLASS ycl_amdp_procedure IMPLEMENTATION.
     ev_uname    := session_context( 'APPLICATIONUSER' );
     ev_lang     := session_context( 'LOCALE_SAP' );
     ev_datum    := session_context( 'SAP_SYSTEM_DATE' );
+
+  ENDMETHOD.
+
+  METHOD call_cds_view BY DATABASE PROCEDURE
+                       FOR HDB
+                       LANGUAGE SQLSCRIPT
+                       OPTIONS READ-ONLY
+                       USING ye_booking .
+*                       yi_book.
+
+    et_data = SELECT top 20 *
+                 FROM ye_booking
+                 where mandt = :iv_clnt;
+
+*    et_data = SELECT top 20 * // View entity
+*                 FROM YI_BOOK
+*                 where mandt = :iv_clnt;
 
   ENDMETHOD.
 
